@@ -32,14 +32,18 @@ resource "aws_instance" "public_vm" {
   key_name      = var.key_name
   vpc_security_group_ids = [aws_security_group.web_sg.id]
 
-  user_data = <<-EOF
-              #!/bin/bash
-              yum update -y
-              amazon-linux-extras install nginx1 -y
-              systemctl start nginx
-              systemctl enable nginx
-              echo "Hello from Public EC2 (NGINX)" > /usr/share/nginx/html/index.html
-              EOF
+  user_data = <<-EOT
+    #!/bin/bash
+    sudo apt update -y || sudo yum update -y
+
+    # Install nginx (works for Ubuntu & Amazon Linux)
+    sudo apt install nginx -y || sudo amazon-linux-extras install nginx1 -y
+
+    sudo systemctl start nginx
+    sudo systemctl enable nginx
+
+    echo "Hello from Public EC2 (NGINX)" | sudo tee /var/www/html/index.html /usr/share/nginx/html/index.html
+    EOT
 
   tags = { Name = "Public-VM" }
 }
